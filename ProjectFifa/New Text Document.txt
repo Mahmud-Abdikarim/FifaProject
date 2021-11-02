@@ -1,0 +1,1 @@
+Next app is an app to do a bare bones FUT style battle

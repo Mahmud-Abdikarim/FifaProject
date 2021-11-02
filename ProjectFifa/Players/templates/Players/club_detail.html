@@ -1,0 +1,20 @@
+{% extends "Players/base.html" %}
+{% block content %}
+    {{clubname}}
+
+    {{club.clubid}}
+    {{club.club_name}}
+
+    {%for positions in aggregate_scores%}
+        {{positions.position_category}}
+        {{ positions.num_players|floatformat:"-1" }}
+
+    {% endfor %}
+
+    {%for player in players%}
+        {{player.sofifa_id.short_name}}
+        {{player.age}}
+        {{ player.overall }}
+
+    {% endfor %}
+{% endblock content %}
