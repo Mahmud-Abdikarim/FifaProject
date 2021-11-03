@@ -7,6 +7,12 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
+class DimYear(models.Model):
+    year = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed: False
+        db_table = 'Dim.Year'
 
 class DimBodytype(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -113,7 +119,7 @@ class FactPlayerstats(models.Model):
     positionid = models.ForeignKey(DimPositions, db_column="positionid", on_delete=models.CASCADE)
     id = models.BigIntegerField(primary_key=True)
     #sofifa_id = models.IntegerField(blank=True, null=True)
-    year = models.IntegerField(blank=True, null=True)
+    year = models.ForeignKey(DimYear, db_column="year", on_delete=models.CASCADE)
     player_url = models.CharField(max_length=200, blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
     height_cm = models.IntegerField(blank=True, null=True)

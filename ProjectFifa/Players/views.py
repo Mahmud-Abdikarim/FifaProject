@@ -7,9 +7,10 @@ from Players.static.Players import Logic
 
 
 def homepage(request, request_year=2021):
+    year = DimYear.objects.all()
     players = FactPlayerstats.objects.filter(year=request_year)[:40]
     print(players.query)
-    context = {'players': players, 'request_year': request_year}
+    context = {'players': players, 'year': year, 'request_year': request_year}
     return render(request, 'Players/homepage.html', context)
 
 
@@ -113,8 +114,9 @@ def clubs(request, request_year=2021):
 
 
 def player_detail(request, player_id, request_year=2021):
-    player = FactPlayerstats.objects.get(sofifa_id=player_id, year=request_year)
-    context = {'player':player, 'request_year': request_year}
+    player = FactPlayerstats.objects.get(year= request_year, sofifa_id= player_id)
+    year = FactPlayerstats.objects.filter(sofifa_id= player_id).values('year')
+    context = {'player':player, 'year': year, 'request_year': request_year}
     return render(request, 'Players/player_detail.html', context)
 
 

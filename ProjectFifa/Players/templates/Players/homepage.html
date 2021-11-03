@@ -1,6 +1,17 @@
 {% extends "Players/base.html" %}
 
 {% block content %}
+
+       <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+            Year
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                {% for year in year %}
+                    <li><a class="dropdown-item" href="{% url 'Players:homepage' year.year %}">{{year.year}}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
         <table>
             <tr>
                 <td>NAME</td>
@@ -16,7 +27,7 @@
             </tr>
             {% for player in players %}
                     <tr>
-                        <td><a href='player_detail/{{request_year}}/{{player.sofifa_id.sofifa_id}}/'>{{player.sofifa_id.short_name}}</a></td>
+                        <td><a href="{% url 'Players:player_detail' request_year player.sofifa_id.sofifa_id %}">{{player.sofifa_id.short_name}}</a></td>
                         <td>{{ player.age }}</td>
                         <td>{{ player.overall }}</td>
                         <td>{{ player.potential }}</td>
