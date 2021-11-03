@@ -1,19 +1,10 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link ref="stylesheet" type="text/css" href="{% static 'Players/main.css' %}">
-    <title>Document</title>
-</head>
+{% extends "Players/base.html" %}
 
-<body>
+{% block content %}
+
     {{player.age}}
     {{player.overall}}
     {{player.sofifa_id.sofifa_id}}
     {{player.height_cm}}
-
-</body>
-</html>
+    
+{% endblock content%}

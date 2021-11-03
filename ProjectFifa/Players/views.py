@@ -6,34 +6,36 @@ from django.db import connection
 from Players.static.Players import Logic
 
 
-def homepage(request):
-    players = FactPlayerstats.objects.all()[:40]
+def homepage(request, request_year=2021):
+    players = FactPlayerstats.objects.filter(year=request_year)[:40]
     print(players.query)
-    context = {'players': players}
+    context = {'players': players, 'request_year': request_year}
     return render(request, 'Players/homepage.html', context)
 
 
 def homepage_added(request):
         
     with connection.cursor() as cursor:
-        cursor.execute('''
-        WITH latest_players AS (
-	SELECT
-	*
-	FROM public."Fact.PlayerStats" AS FP
-	WHERE year = 2021
-), old_players AS (
-	SELECT
-	Sofifa_id
-	FROM public."Fact.PlayerStats"
-	WHERE year <> 2021
-)
-SELECT
-*
-FROM latest_players AS LP
-LEFT JOIN public."Dim.Players" AS DP ON LP.Sofifa_id = DP.Sofifa_id
-WHERE LP.Sofifa_id NOT IN (SELECT Sofifa_id FROM old_players)
-        ''')
+        cursor.execute(
+            '''
+            WITH latest_players AS (
+            SELECT
+            *
+            FROM public."Fact.PlayerStats" AS FP
+            WHERE year = 2021
+            ), old_players AS (
+            SELECT
+            Sofifa_id
+            FROM public."Fact.PlayerStats"
+            WHERE year <> 2021
+            )
+            SELECT
+            *
+            FROM latest_players AS LP
+            LEFT JOIN public."Dim.Players" AS DP ON LP.Sofifa_id = DP.Sofifa_id
+            WHERE LP.Sofifa_id NOT IN (SELECT Sofifa_id FROM old_players)
+            '''
+        )
         #row = cursor.fetchall()
         #row = list(row[0])
         columns = [col[0] for col in cursor.description]
@@ -43,9 +45,8 @@ WHERE LP.Sofifa_id NOT IN (SELECT Sofifa_id FROM old_players)
             for row in fetched
             ]
 
-    context = {'players':row[:40]}
+    context = {'players': row[:40]}
     return render(request, 'Players/homepage_added.html', context)
-
 
 
 def homepage_free(request):
@@ -53,28 +54,31 @@ def homepage_free(request):
     context = {'players':players}
     return render(request, 'Players/free.html', context)
 
+
 def homepage_loaned(request):
     players = FactPlayerstats.objects.filter(loaned_from__isnull=False)[:40]
     context = {'players':players}
     return render(request, 'Players/loaned.html', context)
 
+
 def homepage_added(request):
     with connection.cursor() as cursor:
-        cursor.execute('''
-        WITH oneyearplayers AS 
-(
-SELECT sofifa_id
-FROM public."Fact.PlayerStats"
-GROUP BY sofifa_id
-HAVING count(year) = 1
-)
+        cursor.execute(
+            '''
+            WITH oneyearplayers AS 
+            (
+            SELECT sofifa_id
+            FROM public."Fact.PlayerStats"
+            GROUP BY sofifa_id
+            HAVING count(year) = 1
+            )
 
-
-SELECT *
-FROM public."Fact.PlayerStats" AS FP
-INNER JOIN oneyearplayers AS OP ON FP.Sofifa_id = OP.Sofifa_id
-WHERE year = 2021
-        ''')
+            SELECT *
+            FROM public."Fact.PlayerStats" AS FP
+            INNER JOIN oneyearplayers AS OP ON FP.Sofifa_id = OP.Sofifa_id
+            WHERE year = 2021
+            '''
+        )
         #row = cursor.fetchall()
         #row = list(row[0])
         columns = [col[0] for col in cursor.description]
@@ -91,8 +95,7 @@ WHERE year = 2021
     return render(request, 'Players/added.html', context)
 
 
-def clubs(request):
-    
+def clubs(request, request_year=2021):
     primary_league_clubs = DimClubs.objects.select_related('leagueid').filter(leagueid__rank=1)[:10]
 
     players = FactPlayerstats.objects.filter(year=2021).filter(club_name='Chelsea')
@@ -104,14 +107,14 @@ def clubs(request):
         function = "ROUND"
         template = "%(function)s(%(expressions)s::numeric, 0)"
     clubs = DimPositioncategory.objects.annotate(num_players = Round_club_avg(Avg('dimpositions__factplayerstats__overall', filter=Q(dimpositions__factplayerstats__club_name="Chelsea")&Q(dimpositions__factplayerstats__year=2021)))).filter(~Q(position_categoryid = 3))
-    test = Logic.clubpositionaverage()
-    context = {'primary_league_clubs': primary_league_clubs, 'clubs': clubs, 'test': test}
+    test = Logic.clubpositionaverage(request_year)
+    context = {'test': test, 'request_year':request_year}
     return render(request, 'Players/clubs.html', context)
 
 
-def player_detail(request, request_year, player_id):
+def player_detail(request, player_id, request_year=2021):
     player = FactPlayerstats.objects.get(sofifa_id=player_id, year=request_year)
-    context = {'player':player}
+    context = {'player':player, 'request_year': request_year}
     return render(request, 'Players/player_detail.html', context)
 
 

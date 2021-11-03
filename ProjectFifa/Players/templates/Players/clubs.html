@@ -1,23 +1,23 @@
 {% extends "Players/base.html" %}
 
 {% block content %}
-
-{% for club in primary_league_clubs %}
-    <ul>
-        <li>{{ club.club_name }}</li>
-    </ul>
-    
-
-{% endfor %}
-
-{% for position_value in clubs %}
-    {{position_value.position_category}}
-    {{ position_value.num_players|floatformat:"-1" }}
-
-{% endfor %}
-
-{{test}}
-
+<table>
+    <tr>
+        <td>NAME</td>
+        <td>ATT</td>
+        <td>MID</td>
+        <td>DEF</td>
+    </tr>
+    {% for club in test %}
+            <tr>
+                <td><a href="/players/club_detail/{{request_year}}/{{club.clubid}}">{{club.club_name}}</a></td>
+                <td>{{club.att}}</td>
+                <td>{{club.mid}}</td>
+                <td>{{club.def}}</td>
+        
+            </tr>
+    {% endfor %}
+</table>
 {% endblock content %}
 <!--
 {% for club in clubs %}

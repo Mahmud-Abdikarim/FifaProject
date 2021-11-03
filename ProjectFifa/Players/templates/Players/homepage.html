@@ -1,19 +1,33 @@
-{% for player in players %}
-    <li>
-        {{ player.age }}
-        {{ player.overall }}
-        {{ player.potential }}
-        {{ player.short_name }}
-        {{ player.dimplayers.short_name }}
-        {{ player.dimplayers.dob }}
-        {{ player.club_name }}
-        {{ player.team_position }}
-        {{ player.joined }}
-        {{ player.contract_valid_until }}
-        {{ player.value_eur }}
-        {{ player.wage_eur }}
-    </li>
-    
+{% extends "Players/base.html" %}
 
-{% endfor %}
+{% block content %}
+        <table>
+            <tr>
+                <td>NAME</td>
+                <td>AGE</td>
+                <td>OVR</td>
+                <td>POTL</td>
+                <td>TEAM</td>
+                <td>JOINED</td>
+                <td>CONTRACT TILL</Td>
+                <td>VALUE</td>
+                <td>WAGE</td>
+                <td>TOTAL STATS</td>
+            </tr>
+            {% for player in players %}
+                    <tr>
+                        <td><a href='player_detail/{{request_year}}/{{player.sofifa_id.sofifa_id}}/'>{{player.sofifa_id.short_name}}</a></td>
+                        <td>{{ player.age }}</td>
+                        <td>{{ player.overall }}</td>
+                        <td>{{ player.potential }}</td>
+                        <td>{{ player.club_name }}</td>
+                        <td>{{ player.joined }}</td>
+                        <td>{{ player.contract_valid_until }}</td>
+                        <td>{{ player.value_eur }}</td>
+                        <td>{{ player.wage_eur }}</td>
+                
+                    </tr>
+            {% endfor %}
+        </table>        
 
+{% endblock content %}

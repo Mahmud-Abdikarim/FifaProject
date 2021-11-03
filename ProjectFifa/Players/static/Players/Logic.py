@@ -1,10 +1,11 @@
 from django.db import connection
 
-def clubpositionaverage():
+def clubpositionaverage(year):
     with connection.cursor() as cursor:
         cursor.execute(
             '''
-            SELECT FP.club_name,
+            SELECT club_name[1] AS clubid, club_name[2] AS club_name, club_name[3] AS year, att,mid,def FROM crosstab(
+            $$ SELECT ARRAY[DC.clubid, FP.club_name, year]::text[],
             position_category,
             ROUND(AVG(overall)) AS Club_overall
             FROM public."Fact.PlayerStats" AS FP
@@ -12,8 +13,11 @@ def clubpositionaverage():
             LEFT JOIN public."Dim.Positioncategory" AS DPC ON DP.position_categoryid = DPC.position_categoryid
             LEFT JOIN public."Dim.Clubs" AS DC ON FP.club_name = DC.club_name
             LEFT JOIN public."Dim.Leagues" AS DL ON DC.leagueid = DL.leagueid
-            GROUP BY FP.club_name, position_category, DL.rank
-            HAVING position_category != 'None' AND DL.rank = 1
+            GROUP BY DC.clubid, FP.club_name, year, position_category, DL.rank
+            HAVING position_category != 'None' AND DL.rank = 1 AND year = '''+ str(year) +'''
+            $$, $$ VALUES('ATT'), ('MID'), ('DEF') $$ )
+            AS ct(club_name text[], ATT integer, MID integer, DEF integer )
+
             '''
         )
             #row = cursor.fetchall()
