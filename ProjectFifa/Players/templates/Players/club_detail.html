@@ -10,21 +10,30 @@
         {% endfor %}
     </ul>
 </div>
-    {{clubname}}
 
-    {{club.clubid}}
+<div>
     {{club.club_name}}
-
     {%for positions in aggregate_scores%}
         {{positions.position_category}}
         {{ positions.num_players|floatformat:"-1" }}
-
-    {% endfor %}
-
-    {%for player in players%}
-        {{player.sofifa_id.short_name}}
-        {{player.age}}
-        {{ player.overall }}
-
-    {% endfor %}
+    {% endfor %}   
+</div>
+    <table>
+        <tr>
+            <td>NAME</td>
+            <td>AGE</td>
+            <td>OVR</td>
+            <td>POT</td>
+            <td>POSITION</td>
+        </tr>
+        {%for player in players%}
+        <tr>
+            <td><a href="{% url 'Players:player_detail' request_year player.sofifa_id.sofifa_id %}">{{player.sofifa_id.short_name}}</a></td>
+            <td>{{ player.age }}</td>
+            <td>{{ player.overall }}</td>
+            <td>{{ player.potential }}</td>
+            <td>{{ player.positionid.position }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 {% endblock content %}

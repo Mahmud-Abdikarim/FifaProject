@@ -1,6 +1,26 @@
 {% extends "Players/base.html" %}
 
 {% block content %}
+<form method="GET" action=".">
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+        Year
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" name="Matest">
+            {% for year in year %}
+                <li><input class="dropdown-item" type="submit" name="get_request_year" value="{{year.year}}"></li>
+            {% endfor %}
+        </ul>
+    </div> 
+</form>
+
+
+<div>
+    <form method="GET" action=".">
+        <input type="text" name="get_request_club" placeholder="Search Posts"/>
+        <input type="submit">
+    </form>
+</div>
 <table>
     <tr>
         <td>NAME</td>
@@ -8,12 +28,12 @@
         <td>MID</td>
         <td>DEF</td>
     </tr>
-    {% for club in test %}
+    {% for stats in Clubstats %}
             <tr>
-                <td><a href="/players/club_detail/{{request_year}}/{{club.clubid}}">{{club.club_name}}</a></td>
-                <td>{{club.att}}</td>
-                <td>{{club.mid}}</td>
-                <td>{{club.def}}</td>
+                <td><a href="/players/club_detail/{{request_year}}/{{stats.clubid}}">{{stats.club_name}}</a></td>
+                <td>{{stats.att}}</td>
+                <td>{{stats.mid}}</td>
+                <td>{{stats.def}}</td>
         
             </tr>
     {% endfor %}

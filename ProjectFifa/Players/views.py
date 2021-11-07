@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
+from django.urls import reverse
 from Players.models import *
 from django.db.models import Q, Avg, Count, Sum
 from django.db import connection
@@ -9,7 +10,15 @@ from Players.static.Players import Logic
 def homepage(request, request_year=2021):
     year = DimYear.objects.all()
     players = FactPlayerstats.objects.filter(year=request_year)[:40]
-    print(players.query)
+
+    query = request.GET.get('q','')
+    if query == '':
+        players = FactPlayerstats.objects.filter(year=request_year)[:40]
+    else:
+        players = FactPlayerstats.objects.filter(sofifa_id__short_name__icontains=query, year=request_year)[:40]
+        print('Not empty')
+        print(query)
+
     context = {'players': players, 'year': year, 'request_year': request_year}
     return render(request, 'Players/homepage.html', context)
 
@@ -91,25 +100,40 @@ def homepage_added(request):
     latestyear = FactPlayerstats.objects.filter(year=2021)
     oldyears = FactPlayerstats.objects.values_list('sofifa_id').exclude(year=2021)
     filteredplayers = latestyear.exclude(sofifa_id__in = oldyears).count()
-    print(connection.queries)
     context = {'players': row[:40],'oldyears': filteredplayers}
     return render(request, 'Players/added.html', context)
 
 
-def clubs(request, request_year=2021):
-    primary_league_clubs = DimClubs.objects.select_related('leagueid').filter(leagueid__rank=1)[:10]
+def clubs(request, query='', request_year=2021):
+    year = DimYear.objects.all() #To show in dropdownlist
+    if query:
+        Clubstats = Logic.clubpositionaveragewithquery(request_year, query)
+    else:
+        Clubstats = Logic.clubpositionaverage(request_year)
 
-    players = FactPlayerstats.objects.filter(year=2021).filter(club_name='Chelsea')
-    positions = DimPositions.objects.all()
-    positions = positions.filter(position__in = players)
+    if request.method == 'GET': 
+        if request.GET.get('get_request_club',''):
+            query = request.GET.get('get_request_club','')
+            Clubstats = Logic.clubpositionaveragewithquery(request_year, query)
+            print('phase 1')
+            print(request_year)
+            print(query)
+            return HttpResponseRedirect(reverse('Players:clubs', args=(request_year,query)))
+    
+        elif request.GET.get('get_request_year',''):
+            request_year = request.GET.get('get_request_year','')
+            if query:
+                Clubstats = Logic.clubpositionaveragewithquery(request_year, query)
+                return HttpResponseRedirect(reverse('Players:clubs', args=(request_year,query)))
+            else:
+                Clubstats = Logic.clubpositionaverage(request_year)
+                return HttpResponseRedirect(reverse('Players:clubs', args=(request_year,)))
 
-    from django.db.models import Func
-    class Round_club_avg(Func):
-        function = "ROUND"
-        template = "%(function)s(%(expressions)s::numeric, 0)"
-    clubs = DimPositioncategory.objects.annotate(num_players = Round_club_avg(Avg('dimpositions__factplayerstats__overall', filter=Q(dimpositions__factplayerstats__club_name="Chelsea")&Q(dimpositions__factplayerstats__year=2021)))).filter(~Q(position_categoryid = 3))
-    test = Logic.clubpositionaverage(request_year)
-    context = {'test': test, 'request_year':request_year}
+    #add exception clause here then remove the null?
+    
+
+
+    context = {'Clubstats': Clubstats, 'year': year, 'request_year': request_year, 'query':query}
     return render(request, 'Players/clubs.html', context)
 
 
@@ -130,8 +154,8 @@ def club_detail(request, request_club_id, request_year):
         template = "%(function)s(%(expressions)s::numeric, 0)"
     aggregate_scores = DimPositioncategory.objects.annotate(num_players = Round_club_avg(Avg('dimpositions__factplayerstats__overall', filter=Q(dimpositions__factplayerstats__club_name= clubname)&Q(dimpositions__factplayerstats__year=request_year)))).filter(~Q(position_categoryid = 3))
 
-    players = FactPlayerstats.objects.filter(club_name = clubname, year = request_year)
+    players = FactPlayerstats.objects.filter(club_name = clubname, year = request_year).order_by('positionid__position_categoryid')
+    year = FactPlayerstats.objects.filter(club_name = clubname).values('year').distinct()
 
-    context = {'club':club,'aggregate_scores': aggregate_scores,'c': clubname, 'players': players}
-
+    context = {'club':club,'aggregate_scores': aggregate_scores,'clubname': clubname, 'players': players, 'year': year, 'request_year': request_year}
     return render(request, 'Players/club_detail.html', context)
