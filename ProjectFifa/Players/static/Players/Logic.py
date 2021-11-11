@@ -1,4 +1,5 @@
 from django.db import connection
+from django.core.paginator import Paginator
 
 def clubpositionaverage(year):
     with connection.cursor() as cursor:
@@ -61,3 +62,10 @@ def clubpositionaveragewithquery(year, query):
         ]
     
     return row
+
+def generic_paginator(request, object, rowsperpage):
+    paginator = Paginator(object, rowsperpage)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return page_obj

@@ -1,3 +1,4 @@
+from django.core import paginator
 from django.shortcuts import render
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.urls import reverse
@@ -5,135 +6,73 @@ from Players.models import *
 from django.db.models import Q, Avg, Count, Sum
 from django.db import connection
 from Players.static.Players import Logic
+from .forms import ClubForm
 
 
-def homepage(request, request_year=2021):
+def homepage(request, query='', request_year=2021):
     year = DimYear.objects.all()
-    players = FactPlayerstats.objects.filter(year=request_year)[:40]
-
-    query = request.GET.get('q','')
-    if query == '':
-        players = FactPlayerstats.objects.filter(year=request_year)[:40]
-    else:
-        players = FactPlayerstats.objects.filter(sofifa_id__short_name__icontains=query, year=request_year)[:40]
-        print('Not empty')
+    if query:
+        print('phase1')
         print(query)
+        players = FactPlayerstats.objects.filter(sofifa_id__short_name__icontains=query, year=request_year)
+    else:
+        print('phase2')
+        players = FactPlayerstats.objects.filter(year=request_year)
 
-    context = {'players': players, 'year': year, 'request_year': request_year}
+    if request.method == 'GET':
+        if request.GET.get('get_request_player',''):
+            print('phase3')
+            query = request.GET.get('get_request_player','')
+            return HttpResponseRedirect(reverse('Players:homepage', args=(request_year, query)))
+        elif request.GET.get('get_request_year',''):
+            request_year = request.GET.get('get_request_year','')
+            print(request_year)
+            print('query if exists:' + query)
+            if query:
+                print('phase4')
+                return HttpResponseRedirect(reverse('Players:homepage', args=(request_year, query)))
+            else:
+                print('phase5')
+                return HttpResponseRedirect(reverse('Players:homepage', args=(request_year,)))
+
+    page_obj = Logic.generic_paginator(request, players, 15)
+
+    context = {'players': players, 'year': year, 'request_year': request_year,'query':query, 'page_obj': page_obj}
     return render(request, 'Players/homepage.html', context)
-
-
-def homepage_added(request):
-        
-    with connection.cursor() as cursor:
-        cursor.execute(
-            '''
-            WITH latest_players AS (
-            SELECT
-            *
-            FROM public."Fact.PlayerStats" AS FP
-            WHERE year = 2021
-            ), old_players AS (
-            SELECT
-            Sofifa_id
-            FROM public."Fact.PlayerStats"
-            WHERE year <> 2021
-            )
-            SELECT
-            *
-            FROM latest_players AS LP
-            LEFT JOIN public."Dim.Players" AS DP ON LP.Sofifa_id = DP.Sofifa_id
-            WHERE LP.Sofifa_id NOT IN (SELECT Sofifa_id FROM old_players)
-            '''
-        )
-        #row = cursor.fetchall()
-        #row = list(row[0])
-        columns = [col[0] for col in cursor.description]
-        fetched = cursor.fetchall()
-        row = [
-            dict(zip(columns, row))
-            for row in fetched
-            ]
-
-    context = {'players': row[:40]}
-    return render(request, 'Players/homepage_added.html', context)
-
-
-def homepage_free(request):
-    players = FactPlayerstats.objects.filter(club_name__isnull=True)[:40]
-    context = {'players':players}
-    return render(request, 'Players/free.html', context)
-
-
-def homepage_loaned(request):
-    players = FactPlayerstats.objects.filter(loaned_from__isnull=False)[:40]
-    context = {'players':players}
-    return render(request, 'Players/loaned.html', context)
-
-
-def homepage_added(request):
-    with connection.cursor() as cursor:
-        cursor.execute(
-            '''
-            WITH oneyearplayers AS 
-            (
-            SELECT sofifa_id
-            FROM public."Fact.PlayerStats"
-            GROUP BY sofifa_id
-            HAVING count(year) = 1
-            )
-
-            SELECT *
-            FROM public."Fact.PlayerStats" AS FP
-            INNER JOIN oneyearplayers AS OP ON FP.Sofifa_id = OP.Sofifa_id
-            WHERE year = 2021
-            '''
-        )
-        #row = cursor.fetchall()
-        #row = list(row[0])
-        columns = [col[0] for col in cursor.description]
-        fetched = cursor.fetchall()
-        row = [
-            dict(zip(columns, row))
-            for row in fetched
-            ]
-    latestyear = FactPlayerstats.objects.filter(year=2021)
-    oldyears = FactPlayerstats.objects.values_list('sofifa_id').exclude(year=2021)
-    filteredplayers = latestyear.exclude(sofifa_id__in = oldyears).count()
-    context = {'players': row[:40],'oldyears': filteredplayers}
-    return render(request, 'Players/added.html', context)
 
 
 def clubs(request, query='', request_year=2021):
     year = DimYear.objects.all() #To show in dropdownlist
     if query:
+        print(1)
+        print(query)
         Clubstats = Logic.clubpositionaveragewithquery(request_year, query)
     else:
+        print(2)
         Clubstats = Logic.clubpositionaverage(request_year)
 
     if request.method == 'GET': 
         if request.GET.get('get_request_club',''):
+            print(3)
             query = request.GET.get('get_request_club','')
-            Clubstats = Logic.clubpositionaveragewithquery(request_year, query)
-            print('phase 1')
-            print(request_year)
-            print(query)
             return HttpResponseRedirect(reverse('Players:clubs', args=(request_year,query)))
     
         elif request.GET.get('get_request_year',''):
             request_year = request.GET.get('get_request_year','')
+            print(request_year)
+            print(query)
             if query:
-                Clubstats = Logic.clubpositionaveragewithquery(request_year, query)
+                print(4)
                 return HttpResponseRedirect(reverse('Players:clubs', args=(request_year,query)))
             else:
-                Clubstats = Logic.clubpositionaverage(request_year)
+                print(5)
                 return HttpResponseRedirect(reverse('Players:clubs', args=(request_year,)))
 
     #add exception clause here then remove the null?
     
+    page_obj = Logic.generic_paginator(request, Clubstats, 15)
 
-
-    context = {'Clubstats': Clubstats, 'year': year, 'request_year': request_year, 'query':query}
+    context = {'Clubstats': Clubstats, 'year': year, 'request_year': request_year, 'page_obj': page_obj}
     return render(request, 'Players/clubs.html', context)
 
 
@@ -159,3 +98,26 @@ def club_detail(request, request_club_id, request_year):
 
     context = {'club':club,'aggregate_scores': aggregate_scores,'clubname': clubname, 'players': players, 'year': year, 'request_year': request_year}
     return render(request, 'Players/club_detail.html', context)
+
+def club_edit(request):
+    print('heyy')
+    if request.method == 'POST':
+        form = ClubForm(request.POST)
+
+        if form.is_valid():
+            latestid = DimClubs.objects.latest('clubid').clubid
+            club_name = form.cleaned_data['club_name']
+            leagueid = form.cleaned_data['leagueid']
+            print(latestid)
+            c = DimClubs(clubid= latestid+1, club_name = club_name, leagueid = DimLeagues.objects.get(leagueid=leagueid))
+            c.save()
+            return HttpResponse("Thanks")
+    else:
+        print('phase 1')
+        form = ClubForm()
+        context = {'form': form}
+        return render(request,'Players/club_edit.html',context)
+
+
+
+

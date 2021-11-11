@@ -1,6 +1,7 @@
 {% extends "Players/base.html" %}
 
 {% block content %}
+
 <form method="GET" action=".">
     <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
@@ -28,9 +29,9 @@
         <td>MID</td>
         <td>DEF</td>
     </tr>
-    {% for stats in Clubstats %}
+    {% for stats in page_obj %}
             <tr>
-                <td><a href="/players/club_detail/{{request_year}}/{{stats.clubid}}">{{stats.club_name}}</a></td>
+                <td><a href="{% url 'Players:club_detail' request_year stats.clubid %}">{{stats.club_name}}</a></td>
                 <td>{{stats.att}}</td>
                 <td>{{stats.mid}}</td>
                 <td>{{stats.def}}</td>
