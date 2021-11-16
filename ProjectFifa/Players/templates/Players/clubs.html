@@ -14,8 +14,6 @@
         </ul>
     </div> 
 </form>
-
-
 <div>
     <form method="GET" action=".">
         <input type="text" name="get_request_club" placeholder="Search Posts"/>
@@ -30,21 +28,13 @@
         <td>DEF</td>
     </tr>
     {% for stats in page_obj %}
-            <tr>
-                <td><a href="{% url 'Players:club_detail' request_year stats.clubid %}">{{stats.club_name}}</a></td>
-                <td>{{stats.att}}</td>
-                <td>{{stats.mid}}</td>
-                <td>{{stats.def}}</td>
-        
-            </tr>
+        <tr>
+            <td><a href="{% url 'Players:club_detail' request_year stats.clubid %}">{{stats.club_name}}</a></td>
+            <td>{{stats.att}}</td>
+            <td>{{stats.mid}}</td>
+            <td>{{stats.def}}</td>
+        </tr>
     {% endfor %}
 </table>
+
 {% endblock content %}
-<!--
-{% for club in clubs %}
-    <li>
-        {{club.club_name}}
-        {{club.leagueid.league}}
-    </li>
-{% endfor %}
- {{club.positionid.team_position}}

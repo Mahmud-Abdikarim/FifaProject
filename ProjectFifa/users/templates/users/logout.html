@@ -1,0 +1,15 @@
+{% extends "Players/base.html" %}
+
+{% block content %}
+<!-- Use crispy forms to fix up the template https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=8 40:00-->
+
+    <h2>You have been logged out</h2>
+    <div class="border-top pt-3">
+        <small class="text-muted">
+            
+            <a href="{% url 'users:login' %}">Log In Again</a>
+        </small>
+
+    </div>
+
+{% endblock content %}

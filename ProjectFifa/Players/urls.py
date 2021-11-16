@@ -1,11 +1,11 @@
-from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path
 from . import views
 
 app_name = 'Players' 
 
 urlpatterns = [
     path('players/', views.homepage, name='homepage'),
+    path('players/search_players', views.search_players, name='search_players'),
     path('players/<int:request_year>/', views.homepage, name='homepage'),
     path('players/<int:request_year>/<slug:query>/', views.homepage, name='homepage'),
     path('clubs/', views.clubs, name='clubs'),

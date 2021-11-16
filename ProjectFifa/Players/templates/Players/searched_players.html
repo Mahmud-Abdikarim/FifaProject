@@ -1,0 +1,44 @@
+{% extends "Players/base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+        {% if players %}
+            You searched for {{searched_player}}
+            <div>
+                <table>
+                    <tr>
+                        <td>NAME</td>
+                        <td>AGE</td>
+                        <td>OVR</td>
+                        <td>POT</td>
+                        <td>TEAM</td>
+                        <td>JOINED</td>
+                        <td>CONTRACT TILL</Td>
+                        <td>VALUE</td>
+                        <td>WAGE</td>
+                    </tr>
+                    {% for player in players %}
+                            <tr>
+                                <td><a href="{% url 'Players:player_detail' request_year player.sofifa_id.sofifa_id %}">{{player.sofifa_id.short_name}}</a></td>
+                                <td>{{ player.age }}</td>
+                                <td>{{ player.overall }}</td>
+                                <td>{{ player.potential }}</td>
+                                <td>{{ player.club_name }}</td>
+                                <td>{{ player.joined }}</td>
+                                <td>{{ player.contract_valid_until }}</td>
+                                <td>£{{ player.value_eur|intcomma }}</td>
+                                <td>£{{ player.wage_eur|intcomma }}</td>
+                        
+                            </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            
+        
+        {% else %}
+            You did not search for a player
+        {% endif %}
+
+
+{% endblock content %}
