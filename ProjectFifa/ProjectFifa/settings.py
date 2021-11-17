@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-ydht0&fpnpf(-4sfy-b4y8(ivu52t9u5jf-%9*njuz=cmtfqd1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -80,10 +80,11 @@ WSGI_APPLICATION = 'ProjectFifa.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Fifa',
+        'NAME': 'FifaDjango',
         'USER': 'postgres',
         'PASSWORD': 'Speeddemon12',
-        'HOTST': 'localhost'
+        'Host': 'localhost',
+        'PORT': '5432'
     }
 }
 
